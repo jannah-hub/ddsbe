@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\UserJob;
+
 use Illuminate\Http\Response;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
@@ -45,12 +47,17 @@ class UserController extends Controller
             'username' => 'required|max:20',
             'password' => 'required|max:20',
             'gender' => 'required|in:Male,Female',
-
+            'jobid' => 'required|numeric|min:1|not_in:0',
         ];
 
 
         $this->validate($request, $rules);
+        // validate if Jobid is found in the table tbluserjob
+        $userjob = UserJob::findOrFail($request->jobid);
+
         $users = UserModel::create($request->all());
+        //$user = User::create($request->all());
+
         return $this->successResponse($users, Response::HTTP_CREATED);
     }
 
@@ -87,16 +94,26 @@ class UserController extends Controller
             'username' => 'max:20',
             'password' => 'max:20',
             'gender' => 'in:Male,Female',
-
+            'jobid' => 'required|numeric|min:1|not_in:0',
         ];
 
         $this->validate($request, $rules);
+
+        // validate if Jobid is found in the table tbluserjob
+        $userjob = UserJob::findOrFail($request->jobid);
 
         $users = UserModel::findOrFail($id);
 
         $users->fill($request->all());
         
+        // if no changes happen
+        if ($users->isClean()) {
+            return $this->errorResponse('At least one value must change', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $users->save();
+        return $this->successResponse($users);
+        /*$users->save();
         if($users){
             return $this->successResponse($users);
         }
@@ -104,7 +121,7 @@ class UserController extends Controller
         {
             return $this->errorResponse('User ID Does Not Exist', Response::HTTP_NOT_FOUND);
 
-        }
+        }*/
     }
 
     public function delete($id)
