@@ -87,12 +87,22 @@ class Handler extends ExceptionHandler
     
    Response::HTTP_UNAUTHORIZED);
     }
+
+    //added 
+    if ($exception instanceof ClientException) 
+    {
+         $message = $exception->getResponse()->getBody();
+         $code = $exception->getCode();
+
+         return $this->errorMessage($message,200);
+    }
     
+
     // if your are running in development environment 
     if (env('APP_DEBUG', false)) {
     return parent::render($request, $exception);
     }
 
     return $this->errorResponse('Unexpected error. Try later', Response::HTTP_INTERNAL_SERVER_ERROR);
-}
+    }
 }
